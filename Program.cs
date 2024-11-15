@@ -1,77 +1,55 @@
-﻿public class Programmers
+﻿public class Solution
 {
-    private const int SKIP_TIME = 10;
-    private static int _videoLength;
-    private static int _opStart;
-    private static int _opEnd;
-
-    public static void Main(string[] args)
+    public void main(String[] args)
     {
-
+    
     }
 
-    public string solution(string video_len, string pos, string op_start, string op_end, string[] commands)
+    public int solution(int[] diffs, int[] times, long limit)
     {
-        var answer = "";
+        int minLevel = 1;
+        int maxLevel = diffs.Max();
+        int result = maxLevel;
 
-        _videoLength = ConvertStringTimeToInt(video_len);
-        _opStart = ConvertStringTimeToInt(op_start);
-        _opEnd = ConvertStringTimeToInt(op_end);
-
-        var totalTime = ConvertStringTimeToInt(pos);
-
-        foreach (var cmd in commands)
+        while (minLevel <= maxLevel)
         {
+            var levelAvg = (minLevel + maxLevel) / 2;
 
-            switch (cmd)
+            if (CalTotalTime(levelAvg, diffs, times, limit) <= limit)
             {
-                case "prev":
-                    totalTime = (int)MathF.Max(0, totalTime - 10);
-                    break;
-
-                case "next":
-                    totalTime = (_opStart <= totalTime && totalTime <= _opEnd) ? _opEnd : totalTime;
-
-                    totalTime = (int)MathF.Min(_videoLength, totalTime + 10);
-                    break;
-
-                default:
-                    return string.Empty;
+                result = levelAvg;
+                maxLevel = levelAvg - 1;
             }
-
-            totalTime = (_opStart <= totalTime && totalTime <= _opEnd) ? _opEnd : totalTime;
-
-        }
-
-        var min = totalTime / 60;
-        var sec = totalTime % 60;
-        answer = $"{ConvertIntTimeToString(min)}:{ConvertIntTimeToString(sec)}";
-
-        return answer;
-    }
-
-    private static string ConvertIntTimeToString(int time)
-    {
-        var result = string.Empty;
-
-        if (time < 10)
-        {
-            result = '0' + time.ToString();
-        }
-        else
-        {
-            result = time.ToString();
+            else
+            {
+                minLevel = levelAvg + 1;
+            }
         }
 
         return result;
     }
 
-    private static int ConvertStringTimeToInt(string time)
+    public static long CalTotalTime(int level, int[] diffs, int[] times, long limit)
     {
-        var timeStr = time.Split(':');
-        var min = int.Parse(timeStr[0]) * 60;
-        var sec = int.Parse(timeStr[1]);
+        long totalTime = 0;
 
-        return min + sec;
+        for (var i = 0; i < diffs.Length; ++i)
+        {
+            if (totalTime > limit)
+            {
+                return totalTime;
+            }
+
+            if (diffs[i] <= level)
+            {
+                totalTime += times[i];
+                continue;
+            }
+
+            var count = diffs[i] - level;
+            totalTime += (times[i] + times[i - 1]) * count + times[i];
+        }
+
+        return totalTime;
     }
 }
